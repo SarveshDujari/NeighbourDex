@@ -3,7 +3,6 @@
 ### Your neighbourhood has side quests.
 
 A Pokédex-inspired web app that turns nearby food spots, landmarks, greenery, and everyday details into a collectible adventure. 
-Submission for Hacktoberfest Open-Source AI Challenge: Week 1
 
 **Pick a neighbourhood. Find a small mission. Go outside. Bring back a memory.**
 
