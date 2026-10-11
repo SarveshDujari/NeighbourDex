@@ -1,153 +1,342 @@
-# NeighbourDex
+# NeighbourDex 🌿
 
-Turn your neighbourhood into a collectible adventure. Mobile-first web app.
+### Your neighbourhood has side quests.
 
-## Build phases
+A Pokédex-inspired web app that turns nearby food spots, landmarks, greenery, and everyday details into a collectible adventure. 
+Submission for Hacktoberfest Open-Source AI Challenge: Week 1
 
-1. **Foundation (implemented):** username/password registration and login, server sessions, persistent per-user neighbourhoods, empty dashboard, add-neighbourhood bottom sheet, neighbourhood detail and removal.
-2. **Adventure generation (implemented):** confirm a neighbourhood centre with SerpApi Google Maps search, retrieve nearby places, use local Gemma for playful titles, and attach missions/photo evidence defined by code. Standard guides contain 10–12 cards; compact guides contain 6–12 with explicit consent. Category filters, map pins, source links and directions are included.
-3. **Photo verification (implemented):** camera/gallery uploads, private normalized JPEG storage, vision-capable Gemma review, uncertain/mismatch retry handling, collected cards with photos, progress and memory notes. The completed demo runs locally, as requested; public deployment and optional GPS are not part of this local release.
+**Pick a neighbourhood. Find a small mission. Go outside. Bring back a memory.**
 
-## Run
+Built for the [Hacktoberfest Open-Source AI Challenge — Week 1: Touch Grass](https://dev.to/challenges/hacktoberfest-week1-2026-10-05), using **Gemma 3 through local Ollama inference** and **SerpApi Google Maps search**.
 
-Requires Node.js 24 or later, Ollama with a vision-capable Gemma model, and a SerpApi key. Sharp validates and normalizes photo uploads.
+<img width="1535" height="700" alt="Screenshot 2026-10-11 234758" src="https://github.com/user-attachments/assets/4cc979ca-7e3a-401f-8c3a-609b85584253" />
+[demo video](https://www.youtube.com/watch?v=9pbhOmn5MLU)
 
-```sh
+## Why NeighbourDex?
+
+“Go outside” sounds simple—until you ask yourself what to do there.
+
+Meanwhile, staying home always has a plan: another video, another feed, another hour of scrolling.
+
+NeighbourDex gives you a small starting point. A nearby place to try, something interesting to photograph, or a detail you might normally walk past.
+
+You don’t need to plan an entire trip. Start with one card.
+
+## What you can do
+
+- **Build multiple neighbourhood collections** under your own account.
+- **Confirm your starting point** and choose a three- or five-kilometre search radius.
+- **Explore food, landmarks, and nature**, alongside two discovery prompts.
+- **Switch between cards and a map**, with numbered pins, source links, and directions.
+- **Take or upload photographs** for local Gemma review.
+- **Unlock cards with your own photos** and add personal memory notes.
+- **Earn explorer stamps** as your collection grows.
+- **Create a downloadable postcard** using up to four collected photographs.
+- **Return later** with your collections, notes, and progress saved.
+
+Standard guides contain **10–12 cards**. Areas with fewer suitable results can use an explicitly selected compact guide containing **6–12 cards**, with missing categories shown.
+
+The current release is a **local demo** with a responsive, mobile-first interface.
+
+<img width="1535" height="705" alt="Screenshot 2026-10-11 233418" src="https://github.com/user-attachments/assets/60850aab-9024-4b2a-b50e-f7b994e59d00" />
+<img width="757" height="680" alt="Screenshot 2026-10-11 233951" src="https://github.com/user-attachments/assets/45878d0c-0147-428e-9265-ac41b20ee7f9" />
+
+## How an adventure works
+
+1. Create an account and add a neighbourhood, such as **Saket, Delhi**.
+2. Confirm the suggested starting point and choose your search radius.
+3. Wait while the app finds nearby places and prepares your field guide.
+4. Open a card and read its mission and photo requirements.
+5. Head outside and capture what the quest asks for.
+6. Submit the photograph for Gemma review.
+7. Collect the card, add a memory, and choose your next adventure.
+
+A collected card replaces its placeholder artwork with your photograph. Over time, the guide becomes a collection of experiences you made yourself.
+
+<img width="1535" height="702" alt="Screenshot 2026-10-11 233357" src="https://github.com/user-attachments/assets/2f3f5cd6-f357-40ed-8d3f-777d86818188" />
+<img width="1535" height="700" alt="Screenshot 2026-10-11 234151" src="https://github.com/user-attachments/assets/92e489c5-f2e8-422b-b90b-ff8e3f3089be" />
+
+## Quick start
+
+### Requirements
+
+- **Node.js 24 or later**
+- **Ollama**
+- A **SerpApi API key**
+- Enough memory to run the configured vision-capable Gemma model
+
+### 1. Clone and install
+
+```bash
+git clone https://github.com/SarveshDujari/NeighbourDex.git
+cd NeighbourDex
 npm install
-npm run dev
 ```
 
-Open http://localhost:3000. SQLite data is created in `data/` (ignored by Git).
+### 2. Download Gemma
 
-```sh
-npm test
-```
-
-## Phase 1 architecture
-
-`public/` holds the responsive interface. `server.mjs` serves it and handles same-origin JSON endpoints. SQLite stores accounts, hashed sessions, adventures, reviews, search results, public blueprints, persistent jobs and rate limits. Passwords use asynchronous salted scrypt; raw passwords are never stored. Session cookies are HttpOnly with SameSite=Lax, expire after seven days, and become Secure with NODE_ENV=production. User queries are scoped by session identity. `runtime.mjs` handles the persistent queue/rate limits and `storage.mjs` handles quotas, retention and backups.
-
-## Phase 2 setup: SerpApi + local Ollama
-
-An ignored `.env` file is provided with an empty SerpApi key. Add your key to `SERPAPI_API_KEY` in that file, then restart the server. Never put it in frontend code or commit it. `.env.example` documents the configuration.
-
-```dotenv
-SERPAPI_API_KEY=your_private_key
-OLLAMA_URL=http://127.0.0.1:11434
-OLLAMA_MODEL=gemma3:4b
-```
-
-Ollama must be running. This machine already has `gemma3:4b` installed; for another machine:
-
-```sh
+```bash
 ollama pull gemma3:4b
-# Only if the Ollama application/service is not already running:
+```
+
+Keep Ollama running. If its application or service is not already running:
+
+```bash
 ollama serve
 ```
 
-Use `gemma3:12b` or `gemma3:27b` only if your hardware supports it, and change OLLAMA_MODEL accordingly. The 4B model supports both text and images, preparing for Phase 3. [Ollama Gemma models](https://ollama.com/library/gemma3)
+### 3. Configure the app
 
-Log in, enter a neighbourhood and city/country, click Find my neighbourhood, and confirm the returned starting point. Choose a 3 km or 5 km radius and optionally allow a compact guide. Generation starts after confirmation. Missing configuration and provider errors have explicit states; failed guides have neighbourhood settings and a retry button.
+Copy `.env.example` to `.env` and add your SerpApi key:
 
-### Pipeline and cost bounds
+```dotenv
+SERPAPI_API_KEY=your_serpapi_key
+OLLAMA_URL=http://127.0.0.1:11434
+OLLAMA_MODEL=gemma3:4b
 
-1. One SerpApi Google Maps lookup returns up to five unique candidates with valid coordinates. The user confirms the starting point; suggestions are cached for 24 hours. A viewport alone is not a confirmed match. Older/direct API adventures without a selected location still use the stricter matching-record lookup.
-2. Three searches fetch food, landmarks and nature. Place types override search-query categories where recognized; known unrelated businesses are excluded. Missing coordinates, duplicates and places beyond the chosen radius are removed. This is a proximity filter, not an administrative boundary. Search-provider types can still be inaccurate.
-3. A balanced shortlist of up to ten places (aiming for four food, three landmark, three nature) is passed to Gemma. The model returns only short titles under fixed schema keys. Code supplies place identity, missions, evidence types and estimated durations; it never trusts model-written directions or venue facts. Two discovery quests ask for surface texture and sky. Standard guides require eight sourced places and all three categories. Compact guides require four sourced places and display missing categories without inventing replacements. Place metadata is copied from search data, and directions use stored coordinates.
-4. Output is validated for count, categories, IDs, duplicate places, required text and durations. One model repair is allowed; it reuses the same retrieved records. A successful collection is persisted with source records, search timestamp, model name and generation provenance. Reading or reopening it does not trigger paid searches.
+HOST=127.0.0.1
+PORT=3000
 
-Normally one lookup plus three category searches and one Ollama call are used. Each search has a 45-second timeout; each model call has a four-minute timeout. Retrieved sources are saved for 24 hours independently of title generation, including sparse results, so writing failures and compact-setting retries reuse those records. Changing the radius/starting point or using expired sources requires a new search. Five generation attempts per user per hour and fifteen locality lookups per hour are stored in SQLite and survive restarts.
+USER_PHOTO_LIMIT_MB=100
+TOTAL_PHOTO_LIMIT_MB=1024
+```
 
-Generation and photo reviews share a persistent FIFO queue, capped at twenty waiting/running jobs. Only one inference job runs at a time. The UI shows queue position and real stages rather than an invented percentage. Interrupted jobs resume on restart; this may repeat an unfinished model call. Successful collection/progress/photo records are preserved during the upgrade.
+Keep `.env` private. API keys belong on the server.
 
-Successful blueprints are reused for the same neighbourhood/city, radius, compact preference and confirmed centre for 24 hours. Source dates are retained and reuse is labelled. Each account has separate progress, photos and notes; these are never copied. The optional Saket diagnostic can warm the legacy/direct-API Saket blueprint on restart. Newly confirmed starting points generate/reuse their own matching blueprint.
+### 4. Start exploring
 
-Quests are generated suggestions, not independently verified factual descriptions. Estimates are labelled and users should confirm access/opening hours. Discovery prompts describe observations to attempt, not known objects guaranteed to exist.
+```bash
+npm run dev
+```
 
-## Collecting a card
+Open **http://localhost:3000**.
 
-Open a quest, read what to capture, and use Take a photo or Choose photo. Uploads must be non-animated JPEG, PNG or WebP under 8 MB. Click Check with Gemma. Local inference runs in the background; reopening the quest retrieves its current result.
+The app creates its SQLite database and local storage inside `data/`, which is excluded from Git.
 
-- **Matched:** the card unlocks, its picture replaces the category artwork, and collection progress increases. Add a personal memory note (up to 280 characters).
-- **Uncertain:** the card remains undiscovered. Try a clearer photo or show a distinctive feature/sign.
-- **Not matched:** the card remains undiscovered and the explanation helps you retry.
-- **Model unavailable/interrupted:** the app reports the problem and allows another attempt. No card is unlocked on an error or invalid model output.
+## Architecture
 
-Gemma judges visible evidence, not proof of location, visit time, or actions a picture cannot show. A generic dish photo cannot reliably establish its restaurant. Named places require recognizable features; uncertain results are deliberately not approved. This is a playful collection app, not anti-cheat verification.
+The stack is intentionally small:
 
-Review uses two steps: Gemma first describes the photo without seeing the quest, then compares observations with its explicit evidence type. Food checks visible food/drinks, greenery checks plants, and exterior/sign quests require identification of the named place. A restaurant exterior quest is not incorrectly rejected for lacking a dish. Food and greenery checks do not claim exact venue identity. This reduces conflicting instructions but does not eliminate model mistakes.
+| Component | Responsibility |
+|---|---|
+| HTML, CSS, JavaScript | Responsive interface, cards, capture flow, and postcards |
+| Node.js | Authentication, API routes, validation, and job processing |
+| SQLite | Accounts, sessions, collections, reviews, caches, and persistent jobs |
+| SerpApi | Neighbourhood lookup and nearby Google Maps place results |
+| Gemma 3 via Ollama | Playful quest titles and image-evidence review |
+| Leaflet + OpenStreetMap | Interactive map and numbered place markers |
+| Sharp | Image decoding, resizing, and metadata removal |
 
-### Photo privacy
+### Adventure generation
 
-Images are decoded, rotated, resized to a maximum of 1280 pixels, and re-encoded as JPEG with embedded metadata removed. Files live in `data/photos/`, outside the public directory, and can only be fetched by the owning account. The image is sent to the configured local Ollama instance, not SerpApi. Credentials remain server-side. Model text and image contents are untrusted evidence; returned JSON is validated before changing collection state.
+```text
+Neighbourhood + city
+        ↓
+SerpApi resolves possible starting points
+        ↓
+User confirms a location
+        ↓
+Search food, landmarks, and nature
+        ↓
+Filter duplicates, unsuitable entries, and distant places
+        ↓
+Gemma writes titles for fixed entries
+        ↓
+Code attaches missions and photo requirements
+        ↓
+Save the collection in SQLite
+```
 
-Removing a neighbourhood deletes its reviews and photo files. Queued/running work blocks removal until complete. Thirty photo reviews per user per hour persist across restart. Interrupted reviews resume using their stored normalized photo. The app does not request or store GPS.
+**Search supplies place information. Gemma supplies titles. Application code controls the quest structure.**
 
-Photo quotas default to 100 MB per account and 1024 MB across active photo records. Configure `USER_PHOTO_LIMIT_MB` and `TOTAL_PHOTO_LIMIT_MB` (minimum 8 MB each). The passport shows personal usage. Failed/unmatched review photos older than seven days are removed at startup and during six-hour maintenance; collected memories remain until the neighbourhood is removed. Backups use additional disk space and are not included in the active-photo quota.
+Gemma is not asked to invent venue facts or directions. Place names, coordinates, and source links come from retrieved results. The server validates the collection before saving it.
 
-## Map, milestones and postcards
+The radius describes proximity to the confirmed starting point, rather than an exact administrative neighbourhood boundary.
 
-Switch Cards/Map to see numbered pins at stored place coordinates. Clicking a pin opens its quest. Discovery prompts have no invented map location. Leaflet is served locally; OpenStreetMap tiles load only when opening map view, with attribution. The tile service receives the requested map area and browser connection information. Quests/directions remain usable if tiles cannot load. No bulk tile downloading or offline tile prefetching is performed. [Leaflet documentation](https://leafletjs.com/reference.html), [OpenStreetMap tile policy](https://operations.osmfoundation.org/policies/tiles/).
+### Photo review
 
-Explorer stamps derive from collected cards: first discovery, food, greenery, landmarks and neighbourhood completion. Targets adapt to smaller guides. Make a postcard lets the user choose up to four collected photos, optionally include their username, preview the image and save a PNG. No photos are selected by default, no personal notes are included, and nothing is published or sent to anyone. Rendering happens in the browser.
+```text
+Camera or gallery upload
+        ↓
+Validate, resize, and normalize the image
+        ↓
+Gemma describes the photo without seeing the quest
+        ↓
+Compare those observations with the required evidence
+        ↓
+Matched / Uncertain / Not matched
+        ↓
+Update collection progress only after a valid match
+```
 
-## Backups and recovery
+The first observation step keeps the quest’s expected answer out of the initial image description. This reduces conflicting instructions, although model mistakes remain possible.
 
-Before serving requests, startup creates at most one automatic snapshot per UTC day when a database already exists. The latest three automatic snapshots are retained; manual backups are retained until you remove them. Each snapshot contains a SQLite online backup, its referenced photos and SHA-256 checksums, under ignored `data/backups/`. Keep backups private: they contain account/session records and photographs. This is startup protection, not a scheduled daily backup of an app left continuously running. [Node SQLite backup API](https://nodejs.org/docs/latest-v24.x/api/sqlite.html).
+## Why local Gemma?
 
-Stop the app before manual backup or restore, so files and database stay consistent:
+NeighbourDex defaults to **`gemma3:4b`**, a vision-capable open-weight model running through Ollama.
 
-```sh
+Local inference lets the project:
+
+- Review photographs without sending them to a hosted AI provider.
+- Experiment with prompts without a per-request model API charge.
+- Keep model configuration under the operator’s control.
+- Switch to another compatible model as hardware and requirements change.
+
+Larger Gemma variants can be configured if your hardware supports them.
+
+The entire app is **not offline**: new place searches require SerpApi, and map tiles require internet access. Gemma inference runs locally with the default configuration.
+
+## Reliable generation and retries
+
+Generation and photo reviews share a persistent queue. One job runs at a time, and the interface displays queue positions and actual processing stages.
+
+Interrupted jobs resume after a server restart. An unfinished model call may need to run again.
+
+Retrieved places are cached for **24 hours**, independently of title generation. A failed writing step can therefore retry using the same sources without repeating paid searches.
+
+Successful adventure blueprints can also be reused for matching settings. Each account still has its own progress, photographs, and notes.
+
+An uncached generation normally uses one locality lookup, three category searches, and one title-generation call. Actual inference time depends on the machine.
+
+## Photo reviews: what they mean
+
+| Result | Behaviour |
+|---|---|
+| **Matched** | Unlock the card and use your photograph as its artwork |
+| **Uncertain** | Keep the card undiscovered and suggest trying clearer evidence |
+| **Not matched** | Keep the card undiscovered and explain the mismatch |
+| **Error** | Leave progress unchanged and allow another attempt |
+
+Gemma evaluates **visible evidence**. A generic dish photograph cannot establish which restaurant served it, and a photograph cannot prove a visit’s time or location.
+
+Food and greenery quests check visible subjects. Named-place quests require recognizable identifying features.
+
+NeighbourDex is a playful exploration app. It does not provide anti-cheat or verified-location guarantees.
+
+## Privacy and storage
+
+- Passwords use asynchronous, salted **scrypt** hashing.
+- Sessions use **HttpOnly, SameSite=Lax** cookies.
+- Collections, reviews, photographs, and notes are scoped to the owning account.
+- Photographs are stored outside the public directory.
+- Images are resized to a maximum of **1280 pixels** and re-encoded with embedded metadata removed.
+- The app does not request or store device GPS.
+- Photos are sent to the configured Ollama instance, not SerpApi.
+- Postcards are rendered in the browser and downloaded only when requested.
+
+Uploads support non-animated **JPEG, PNG, and WebP** images under **8 MB**.
+
+Default active-photo limits are **100 MB per account** and **1024 MB overall**. Failed or unmatched review photographs older than seven days are cleaned up; collected photographs remain until the neighbourhood is removed.
+
+Backups occupy additional disk space and retain their own copies.
+
+OpenStreetMap receives the map area requested by the browser and connection information when tiles load.
+
+## Backups and restore
+
+Startup creates at most one automatic snapshot per UTC day when a database already exists. The latest three automatic snapshots are retained.
+
+This is startup protection, rather than a scheduled backup for a continuously running server.
+
+For manual backup or restore, stop the app first:
+
+```bash
 npm run backup
+```
+
+To restore a snapshot:
+
+```bash
 npm run restore -- data/backups/<backup-folder>
 npm run dev
 ```
 
-Restore checks file hashes, SQLite integrity, foreign keys and referenced photos before modifying current data, and preserves a safety copy of the previous state. If the current database is corrupt, its raw files/photos are preserved for manual inspection. An active server lock prevents restore while the app is running. Account/password recovery is a separate future feature.
+Restore checks file hashes, database integrity, and referenced photographs before replacing current data. It also preserves a safety copy of the previous state.
 
-## Quick local demo
+Backups contain private account records and photographs. Keep them out of public repositories.
 
-1. Keep Ollama running; `gemma3:4b` is configured by default.
-2. Start the app and create an explorer account.
-3. Add Saket, Delhi and wait for the local quests.
-4. Open a food/nature/landmark/discovery card and follow its mission outside.
-5. Capture the expected evidence, submit it, and watch the card reveal your memory.
-6. Add a note, close/reopen the app, and confirm your collection persists.
+## Tests
 
-Use actual outdoor photos for your hackathon story. Technical diagnostic images do not demonstrate a real outing.
-
-### Validation
-
-`npm test` covers authentication/isolation, persistent limits, confirmed locality choices, storage quotas, FIFO jobs and restart recovery, cached search reuse after writing failures, compact guides, grounded evidence, image normalization, private photo access, notes, rapid photo selection, map-pin wiring, opt-in postcard contents, backup restoration and corrupted-file rejection. DOM/graphics tests use lightweight fixtures rather than a rendered browser and do not establish visual layout accuracy. They consume no search credits.
-
-Optional real Ollama smoke test (uses clearly synthetic place records, never calls SerpApi):
-
-```sh
-node scripts/check-local-gemma.mjs
+```bash
+npm test
+npm run check
 ```
 
-Real SerpApi + Gemma diagnostic (four search requests; saves `data/live-saket.json` without credentials):
+The automated suite covers:
 
-```sh
-node scripts/check-live-adventure.mjs
-# Or test another locality:
+- Authentication and account isolation.
+- Locality confirmation and collection validation.
+- Cached searches and compact guides.
+- Persistent queues and restart recovery.
+- Image processing, private photo access, and storage limits.
+- Memory notes and rapid photo-selection handling.
+- Map-pin wiring and postcard selection.
+- Backup restoration and corrupted-file rejection.
+
+These tests use fixtures and do not consume SerpApi credits. Client tests check behaviour without establishing rendered visual layout accuracy.
+
+Optional real-model checks:
+
+```bash
+# Local generation with synthetic place records; no SerpApi requests
+node scripts/check-local-gemma.mjs
+
+# Local vision check using a synthetic diagnostic image
+node scripts/check-live-vision.mjs
+
+# Real place searches and local Gemma; consumes SerpApi requests
 node scripts/check-live-adventure.mjs "Connaught Place" "Delhi"
 ```
 
-Real vision diagnostic (uses a synthetic red-square illustration to check positive and negative outcomes, not an outdoor completion):
+## Project structure
 
-```sh
-node scripts/check-live-vision.mjs
+```text
+NeighbourDex/
+├── public/
+│   ├── index.html       # Interface
+│   ├── style.css        # Visual design and responsive layout
+│   ├── app.js           # Accounts, adventures, photos, and notes
+│   └── experience.js    # Maps, stamps, and postcards
+├── adventure.mjs        # Place retrieval and quest generation
+├── photos.mjs           # Image processing and Gemma review
+├── runtime.mjs          # Persistent queue and rate limits
+├── storage.mjs          # Quotas, retention, backups, and restore
+├── server.mjs           # HTTP server and API routes
+├── scripts/             # Diagnostics and maintenance tools
+├── tests/               # Automated tests
+└── .env.example         # Configuration template
 ```
 
-Provider references: [SerpApi Google Maps](https://serpapi.com/google-maps-api), [Ollama chat and JSON output](https://docs.ollama.com/api/chat).
+## Current limitations
 
-## Before public deployment
+- Generation and review speed depend on local hardware.
+- Search-provider categories and AI reviews can be inaccurate.
+- Sparse areas may require a compact guide.
+- Opening hours, access, and estimated durations should be checked before visiting.
+- Account/password recovery is not implemented.
+- Public deployment and device GPS are not included in this release.
 
-Use HTTPS, set NODE_ENV=production and APP_ORIGIN to the canonical HTTPS origin behind a reverse proxy, set HOST=0.0.0.0, and use durable storage for the database, photos and backups. A remote deployment cannot reach laptop Ollama through its own localhost: configure a secured reachable inference endpoint. The app is designed for one server process; horizontal scaling needs coordinated workers and shared storage. Auth limits use the direct connection IP; configure trusted proxy behavior before exposing it behind a proxy. Configure external/off-machine backup retention and account recovery before production. Never expose Ollama publicly without authentication, and never put model/search API keys in browser code.
+For public hosting, the app needs HTTPS, persistent storage, appropriate production configuration, and a secured inference endpoint reachable by the deployed server. A hosted server cannot reach laptop Ollama through its own `localhost`.
 
-For the local demo, use http://localhost:3000 on this laptop. `localhost` on a phone refers to the phone itself; mobile remote access and camera behavior need an appropriately secured deployment or local network setup.
+The layout supports mobile screens, but opening it on a phone requires an accessible server address. Camera capture may require HTTPS, depending on the browser.
 
-## Hackathon write-up checklist
+## Built with
 
-Show the full add-neighbourhood → sourced quests → outside photo → collected-card flow. Explain why SerpApi grounds the place data and why Gemma can run locally, keep photos under your control, and be replaced without a closed-model API. Include the actual model name, source provenance, tests, a short demo video, and your outdoor experience. Claim only categories for technologies actually used: SerpApi and Gemma are integrated here; no Render deployment has been performed. Credit Ollama, Gemma, SerpApi and Sharp. Publish the source without `.env`, `data/`, passwords or personal photos.
+Thanks to the projects and services behind NeighbourDex:
+
+- [Gemma](https://ai.google.dev/gemma)
+- [Ollama](https://ollama.com/)
+- [SerpApi](https://serpapi.com/google-maps-api)
+- [Node.js](https://nodejs.org/)
+- [SQLite](https://www.sqlite.org/)
+- [Leaflet](https://leafletjs.com/)
+- [OpenStreetMap](https://www.openstreetmap.org/)
+- [Sharp](https://sharp.pixelplumbing.com/)
+
+## License
+
+Released under the **MIT License**. See [LICENSE](LICENSE).
+
+---
+
+**One neighbourhood. A handful of side quests. A reason to step outside.**
